@@ -1,7 +1,7 @@
 # app/workflows/underwriting_workflow.py
 from datetime import timedelta
 from typing import Dict, Any
-from hatchet import Hatchet, Context, Workflow, WorkflowConfig
+from hatchet_sdk import Hatchet, Context, Workflow, WorkflowConfig
 
 from app.services.matching_service import MatchingService
 from app.database import SessionLocal
