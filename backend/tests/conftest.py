@@ -1,7 +1,16 @@
 # backend/tests/conftest.py
 """
-Pytest fixtures for the Lender Matching Platform tests.
+Pytest fixtures for the Lender Matching Platform.
+
+This file ensures Python can find both 'main.py' (in root) and the 'app' package.
 """
+
+import sys
+from pathlib import Path
+
+# Add backend root to Python path so 'main' and 'app' can be imported
+BASE_DIR = Path(__file__).parent.parent
+sys.path.append(str(BASE_DIR))
 
 import pytest
 from fastapi.testclient import TestClient
@@ -17,9 +26,9 @@ def client():
 
 @pytest.fixture(scope="function")
 def db():
-    """Provide database session for tests."""
-    db = SessionLocal()
+    """Provide a database session for tests."""
+    session = SessionLocal()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
