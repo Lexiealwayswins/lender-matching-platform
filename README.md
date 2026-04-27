@@ -87,7 +87,7 @@ lender-matching-platform/
 ### 1. Clone and Setup
 
 ```bash
-git clone <your-repo>
+git clone https://github.com/Lexiealwayswins/lender-matching-platform.git
 cd lender-matching-platform
 ```
 
@@ -178,5 +178,5 @@ curl -X POST http://localhost:8000/loans/1/underwrite-hatchet
 ```bash
 pytest tests/test_api.py -v
 pytest tests/test_matching.py -v
-pytest tests/test_matching.py -v
+pytest tests/conftest.py -v
 ```
