@@ -36,7 +36,7 @@ lender-matching-platform/
 │   │   ├── api/endpoints/            # API Routers (loans.py, policies.py)
 │   │   ├── core/                     # Configuration (config.py)
 │   │   ├── database.py               # Database session management
-│   │   ├── models/                   # SQLAlchemy Models (核心)
+│   │   ├── models/                   # SQLAlchemy Models
 │   │   │   ├── base.py               # Base class + RuleType Enum
 │   │   │   ├── lender.py             # Lender, LenderProgram, LenderProgramRule
 │   │   │   ├── application.py        # LoanApplication
@@ -58,7 +58,7 @@ lender-matching-platform/
 ├── frontend/                         # React + TypeScript Frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   └── RuleResultTable.tsx   # Detailed rule matching table (核心UI)
+│   │   │   └── RuleResultTable.tsx   # Detailed rule matching table
 │   │   ├── pages/
 │   │   │   ├── LoanApplicationForm.tsx
 │   │   │   ├── ApplicationResults.tsx # Matching results with detailed reasons
