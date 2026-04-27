@@ -27,6 +27,61 @@ A robust loan underwriting and intelligent lender matching system that evaluates
 - pytest + FastAPI TestClient
 - Manual API testing with curl
 
+## Project Structure
+
+```bash
+lender-matching-platform/
+├── backend/                          # FastAPI Backend
+│   ├── app/
+│   │   ├── api/endpoints/            # API Routers (loans.py, policies.py)
+│   │   ├── core/                     # Configuration (config.py)
+│   │   ├── database.py               # Database session management
+│   │   ├── models/                   # SQLAlchemy Models (核心)
+│   │   │   ├── base.py               # Base class + RuleType Enum
+│   │   │   ├── lender.py             # Lender, LenderProgram, LenderProgramRule
+│   │   │   ├── application.py        # LoanApplication
+│   │   │   └── match.py              # ApplicationMatch + MatchRuleResult
+│   │   ├── schemas/                  # Pydantic models for API
+│   │   ├── services/                 # Business Logic
+│   │   │   ├── rule_evaluator.py     # Single rule evaluation
+│   │   │   └── matching_service.py   # Main matching engine
+│   │   └── workflows/                # Hatchet Workflow
+│   ├── migrations/                   # Alembic database migrations
+│   ├── scripts/
+│   │   └── seed_lenders.py           # Seed data from 5 PDFs
+│   ├── tests/                        # pytest test files
+│   ├── .env.example
+│   ├── alembic.ini
+│   ├── main.py
+│   └── requirements.txt
+│
+├── frontend/                         # React + TypeScript Frontend
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── RuleResultTable.tsx   # Detailed rule matching table (核心UI)
+│   │   ├── pages/
+│   │   │   ├── LoanApplicationForm.tsx
+│   │   │   ├── ApplicationResults.tsx # Matching results with detailed reasons
+│   │   │   └── LenderPolicies.tsx    # View and manage lender rules
+│   │   ├── types/
+│   │   │   └── index.ts              # TypeScript interfaces
+│   │   ├── utils/
+│   │   │   └── api.ts                # API client
+│   │   ├── App.tsx                   # Routing configuration
+│   │   └── main.tsx
+│   ├── .env
+│   ├── index.html
+│   ├── package.json
+│   └── tailwind.config.js
+│
+├── docker-compose.yml                # PostgreSQL container
+├── start.sh                          # Start both frontend and backend
+├── README.md
+├── DECISIONS.md
+└── .gitignore
+```
+
+
 ## Local Development Setup
 
 ### 1. Clone and Setup
