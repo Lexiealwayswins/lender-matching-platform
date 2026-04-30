@@ -1,12 +1,12 @@
 # Lender Matching Platform
 
-A robust loan underwriting and intelligent lender matching system that evaluates business equipment finance applications against multiple lenders' credit policies. The system parses real lender guidelines from 5 PDF documents and provides transparent, detailed matching results with clear rejection reasons.
+A robust loan underwriting and intelligent lender matching system that evaluates business equipment finance applications against multiple lenders' credit policies. The system provides a complete administrative suite for managing lenders and their complex credit rules alongside the core matching engine.
 
 ## Features
 
-- **Extensible Policy Engine**: Rules are stored in a flexible `LenderProgramRule` table, making it easy to add, edit, or extend criteria without changing code.
-- **Detailed Matching Results**: Shows exactly which rules passed or failed with human-readable explanations (e.g. "Minimum FICO required is 725, applicant has 680").
-- **Fit Score Ranking**: Lenders are ranked by match quality (0-100).
+- **Extensible Policy Engine**: Comprehensive CRUD operations for Lenders, Programs, and Rules, allowing administrators to update credit policies in real-time.
+- **Asynchronous CRUD via Hatchet**: Heavy deletion operations (Lenders/Programs/Applications) are handled asynchronously through Hatchet workflows to ensure system responsiveness.
+- **Extensible Rule Engine**: Supports diverse criteria (FICO, Industry, State, etc.) using a flexible rule_type + operator + value design.
 - **Workflow Orchestration**: Uses Hatchet to demonstrate validation, feature derivation, parallel matching, and retry logic.
 - **Modern UI**: Clean React + TypeScript frontend with detailed rule result tables.
 
@@ -109,6 +109,12 @@ alembic upgrade head
 
 # Seed lender policies from the 5 PDFs
 python scripts/seed_lenders.py
+
+# run hatchet workflow
+python run_worker.py
+
+# run backend services
+uvicorn main:app --reload --port 8000
 ```
 
 ### 3. Frontend Setup
@@ -116,9 +122,12 @@ python scripts/seed_lenders.py
 ```bash
 cd ../frontend
 npm install
+
+# run frontend services
+npm run dev
 ```
 
-### 4. Start Services
+### 4. or Skip 2 & 3 and Just Run Start Services
 
 ```bash
 # From project root
@@ -128,25 +137,35 @@ npm install
 Backend will run on: **http://localhost:8000**  
 Frontend will run on: **http://localhost:5173**
 
-### 5. Run Tests
 
-```bash
-cd backend
-pytest -v
-```
-
-## API Documentation
+## 🚀 API Documentation & Testing (Swagger UI)
 
 - Interactive Swagger UI: http://localhost:8000/docs
 - Key Endpoints:
 
-| Method | Endpoint                        | Description                              |
-|--------|---------------------------------|------------------------------------------|
-| POST   | `/loans/`                       | Create new loan application              |
-| POST   | `/loans/{id}/underwrite`        | Run traditional matching engine          |
-| POST   | `/loans/{id}/underwrite-hatchet`| Run matching via Hatchet workflow        |
-| GET    | `/loans/{id}/matches`           | Get detailed matching results            |
-| GET    | `/policies/lenders`             | View all lender policies and rules       |
+### 1. Loan Applications
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/application/` | Submit a new loan application. |
+| **GET** | `/application/` | List all submitted applications. |
+| **PUT** | `/application/{id}` | Update application details. |
+| **DELETE** | `/application/{id}` | Async deletion of application and matches via Hatchet. |
+
+### 2. Policy Management (Lenders, Programs, & Rules)
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/lenders/` | Retrieve all lenders with nested programs and rules. |
+| **POST** | `/lenders/` | Create a new lending institution. |
+| **POST** | `/programs/` | Create a specific lending program (e.g., "Tier 1"). |
+| **PUT** | `/rules/{rule_id}` | Update specific credit criteria (e.g., change Min FICO). |
+| **DELETE** | `/lenders/{id}` | Cascade delete lender, programs, and rules via Hatchet. |
+
+### 3. Underwriting & Matching
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/match/{id}/underwrite` | Trigger the Hatchet asynchronous matching pipeline. |
+| **GET** | `/match/{id}/matches` | Retrieve final results with injected Lender/Program names. |
+
 
 ## Architecture Overview
 
@@ -157,26 +176,3 @@ pytest -v
 - **Frontend** — Clean component-based UI with detailed rule result tables
 
 The system is designed for high extensibility — new lender PDFs can be supported by simply adding rules to the database.
-
-## Testing
-
-See detailed testing commands in the **Testing** section of this README (included below).
-
-**Manual Testing (curl):**
-```bash
-# Create application
-curl -X POST http://localhost:8000/loans/ -H "Content-Type: application/json" -d '{"business_name":"Demo Corp","industry":"Manufacturing","state":"TX","years_in_business":6,"fico_score":750,"requested_amount":85000,"equipment_type":"Excavator"}'
-
-# Run underwriting
-curl -X POST http://localhost:8000/loans/1/underwrite
-
-# Run with Hatchet (demonstrates parallelization + retry)
-curl -X POST http://localhost:8000/loans/1/underwrite-hatchet
-```
-
-**Automated Testing:**
-```bash
-pytest tests/test_api.py -v
-pytest tests/test_matching.py -v
-pytest tests/conftest.py -v
-```

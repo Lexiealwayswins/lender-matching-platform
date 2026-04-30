@@ -35,7 +35,18 @@ elif [ -d "lmpvenv" ]; then
     exit 1
 fi
 
-uvicorn main:app --reload uvicorn main:app --reload uvicorn main:app --reload uv 3uvicorn main:app --reload uvicorn main:app --reload uarting React + TypeScript Frontend..."
+# ====================== 3. Start Hatchet Worker ======================
+echo "🪓 Starting Hatchet Worker..."
+python run_worker.py &
+WORKER_PID=$!
+
+# ====================== 4. Start FastAPI Backend ======================
+echo "🔧 Starting FastAPI Backend..."
+uvicorn main:app --reload --port 8000 &
+BACKEND_PID=$!
+
+# ====================== 5. Start Frontend ======================
+echo "💻 Starting React + TypeScript Frontend..."
 cd ../frontend
 npm run dev &
 FRONTEND_PID=$!
