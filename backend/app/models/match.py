@@ -1,9 +1,13 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from typing import List
 from .base import Base
+from typing import TYPE_CHECKING
+from datetime import datetime
 
+# To avoid pylance error
+if TYPE_CHECKING:
+    from .application import LoanApplication
 
 class ApplicationMatch(Base):
     """
@@ -12,20 +16,20 @@ class ApplicationMatch(Base):
     and links to detailed per-rule results.
     """
     __tablename__ = "application_matches"
-
-    id = Column(Integer, primary_key=True)
-    application_id = Column(Integer, ForeignKey("loan_applications.id"), nullable=False)
-    program_id = Column(Integer, ForeignKey("lender_programs.id"), nullable=False)
     
-    is_eligible = Column(Boolean, nullable=False)
-    fit_score = Column(Integer, default=0)                    # 0-100
-    best_tier = Column(String(50))
-    overall_reason = Column(Text)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_id: Mapped[int] = mapped_column(ForeignKey("loan_applications.id"))
+    program_id: Mapped[int] = mapped_column(ForeignKey("lender_programs.id"))
     
-    created_at = Column(DateTime, server_default=func.now())
+    is_eligible: Mapped[bool] = mapped_column()
+    fit_score: Mapped[int | None] = mapped_column(default=0)  # 0-100
+    best_tier: Mapped[str | None] = mapped_column(String(50))
+    overall_reason: Mapped[str | None] = mapped_column(Text)
+    
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    application = relationship("LoanApplication", back_populates="matches")
-    rule_results: List["MatchRuleResult"] = relationship("MatchRuleResult", back_populates="match")
+    application: Mapped["LoanApplication"] = relationship(back_populates="matches")
+    rule_results: Mapped[list["MatchRuleResult"]] = relationship(back_populates="match")
 
 
 class MatchRuleResult(Base):
@@ -36,16 +40,16 @@ class MatchRuleResult(Base):
     """
     __tablename__ = "match_rule_results"
 
-    id = Column(Integer, primary_key=True)
-    match_id = Column(Integer, ForeignKey("application_matches.id"), nullable=False)
-    rule_id = Column(Integer, ForeignKey("lender_program_rules.id"), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    match_id: Mapped[int] = mapped_column(ForeignKey("application_matches.id"))
+    rule_id: Mapped[int] = mapped_column(ForeignKey("lender_program_rules.id"))
     
-    rule_type = Column(String(50), nullable=False)
-    passed = Column(Boolean, nullable=False)
-    actual_value = Column(String(100))
-    expected_value = Column(String(100))
-    reason = Column(Text, nullable=False)
+    rule_type: Mapped[str] = mapped_column(String(50))
+    passed: Mapped[bool] = mapped_column()
+    actual_value: Mapped[str | None] = mapped_column(String(100))
+    expected_value: Mapped[str | None] = mapped_column(String(100))
+    reason: Mapped[str] = mapped_column(Text)
     
-    created_at = Column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    match = relationship("ApplicationMatch", back_populates="rule_results")
+    match: Mapped["ApplicationMatch"] = relationship(back_populates="rule_results")

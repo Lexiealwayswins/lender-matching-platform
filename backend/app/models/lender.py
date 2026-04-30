@@ -1,21 +1,22 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, JSON, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import String, ForeignKey, Text, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from typing import List
-from .base import Base, RuleType
+from typing import Any, List
+from .base import Base
+from datetime import datetime
 
 
 class Lender(Base):
     """Represents a financing company (e.g. Citizens Bank, Falcon Equipment Finance)."""
     __tablename__ = "lenders"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False, unique=True)
-    description = Column(Text)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    programs: List["LenderProgram"] = relationship("LenderProgram", back_populates="lender")
+    programs: Mapped[list["LenderProgram"]] = relationship(back_populates="lender")
 
 
 class LenderProgram(Base):
@@ -26,18 +27,18 @@ class LenderProgram(Base):
     """
     __tablename__ = "lender_programs"
 
-    id = Column(Integer, primary_key=True)
-    lender_id = Column(Integer, ForeignKey("lenders.id"), nullable=False)
-    name = Column(String(100), nullable=False)
-    description = Column(Text)
-    is_active = Column(Boolean, default=True)
-    min_loan_amount = Column(Integer)
-    max_loan_amount = Column(Integer)
-    typical_term_months = Column(Integer)
-    created_at = Column(DateTime, server_default=func.now())
+    id: Mapped[int] = mapped_column(primary_key=True)
+    lender_id: Mapped[int] = mapped_column(ForeignKey("lenders.id"))
+    name: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str | None] = mapped_column(Text)
+    is_active: Mapped[bool | None] = mapped_column(default=True)
+    min_loan_amount: Mapped[int | None] = mapped_column()
+    max_loan_amount: Mapped[int | None] = mapped_column()
+    typical_term_months: Mapped[int | None] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    lender = relationship("Lender", back_populates="programs")
-    rules: List["LenderProgramRule"] = relationship("LenderProgramRule", back_populates="program")
+    lender: Mapped["Lender"] = relationship(back_populates="programs")
+    rules: Mapped[list["LenderProgramRule"]] = relationship(back_populates="program")
 
 
 class LenderProgramRule(Base):
@@ -45,22 +46,22 @@ class LenderProgramRule(Base):
     Core extensible rule table.
     This stores all rules parsed from the 5 PDFs (FICO, PayNet, TIB, 
     industry exclusions [5], bankruptcy years [2][3][5], state restrictions [1], etc.).
-    Using rule_type + operator + value allows adding new rules from future PDFs
+    Using rule_type + operator + value allows adding new rules from future PDFs 
     without changing the database schema.
     """
     __tablename__ = "lender_program_rules"
 
-    id = Column(Integer, primary_key=True)
-    program_id = Column(Integer, ForeignKey("lender_programs.id"), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    program_id: Mapped[int] = mapped_column(ForeignKey("lender_programs.id"))
     
-    rule_type = Column(String(50), nullable=False)           # maps to RuleType enum
-    operator = Column(String(20), nullable=False)            # "gte", "lte", "in", "not_in"
-    value = Column(String(255))
-    value_json = Column(JSON)                                 # for lists (e.g. excluded industries [5])
-    priority = Column(Integer, default=100)
-    failure_reason_template = Column(Text)                    # e.g. "Minimum FICO required is {threshold}, applicant has {actual}"
+    rule_type: Mapped[str] = mapped_column(String(50))                      # maps to RuleType enum
+    operator: Mapped[str] = mapped_column(String(20))                       # "gte", "lte", "in", "not_in"
+    value: Mapped[str | None] = mapped_column(String(255))
+    value_json: Mapped[Any | None] = mapped_column(JSON)                    # for lists (e.g. excluded industries [5])
+    priority: Mapped[int | None] = mapped_column(default=100)
+    failure_reason_template: Mapped[str | None] = mapped_column(Text)       # e.g. "Minimum FICO required is {threshold}, applicant has {actual}"
     
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    program = relationship("LenderProgram", back_populates="rules")
+    program: Mapped["LenderProgram"] = relationship(back_populates="rules")

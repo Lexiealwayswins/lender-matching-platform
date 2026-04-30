@@ -20,8 +20,6 @@ class RuleEvaluator:
         expected_json = rule.value_json
         template = rule.failure_reason_template or "Rule {rule_type} failed"
 
-        actual_value = application_data.get(rule_type)
-
         # Handle different rule types from the 5 PDFs
         if rule_type == RuleType.MIN_FICO.value:
             actual = application_data.get("fico_score")
@@ -63,8 +61,18 @@ class RuleEvaluator:
             return RuleEvaluator._compare_numeric(actual, expected, operator, template)
 
         elif rule_type == RuleType.COMPARABLE_DEBT.value:
-            # Simplified version - can be enhanced later
-            return True, "Comparable debt check passed (placeholder)"
+            requested_amount = application_data.get("requested_amount")
+            highest_previous_debt = application_data.get("highest_previous_debt")
+            if requested_amount is None or highest_previous_debt is None:
+                return False, "Missing requested_amount or highest_previous_debt"
+            try:
+                required_ratio = float(expected)
+                required_past_debt = float(requested_amount) * required_ratio
+                actual_past_debt = float(highest_previous_debt)
+                return RuleEvaluator._compare_numeric(actual_past_debt, required_past_debt, operator, template)
+                
+            except (TypeError, ValueError):
+                return False, "Invalid numeric value in comparable debt configuration"
           
         # If there is a new PDF, here we can add more elif logics without updating database schema
 

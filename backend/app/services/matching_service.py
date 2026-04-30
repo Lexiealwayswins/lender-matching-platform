@@ -1,9 +1,10 @@
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-from datetime import datetime
+from sqlalchemy import select
+from datetime import datetime, timezone
 
 from app.models.application import LoanApplication
-from app.models.lender import LenderProgram, LenderProgramRule
+from app.models.lender import LenderProgram
 from app.models.match import ApplicationMatch, MatchRuleResult
 from app.services.rule_evaluator import RuleEvaluator
 
@@ -38,9 +39,13 @@ class MatchingService:
         matches = []
 
         # Get all active lender programs with their rules
-        programs = self.db.query(LenderProgram).join(LenderProgram.rules).filter(
-            LenderProgram.is_active == True
-        ).all()
+        stmt = (
+            select(LenderProgram)
+            .join(LenderProgram.rules)
+            .where(LenderProgram.is_active == True)
+        )
+        
+        programs = self.db.scalars(stmt).unique().all()
 
         for program in programs:
             match_result = self._evaluate_program(program, application_data, application.id)
@@ -52,19 +57,36 @@ class MatchingService:
     def _prepare_application_data(self, application: LoanApplication) -> Dict[str, Any]:
         """Convert LoanApplication object into a flat dict for easy rule evaluation."""
         return {
-            "fico_score": application.fico_score,
-            "paynet_score": application.paynet_score,
-            "years_in_business": application.years_in_business,
-            "annual_revenue": application.annual_revenue,
-            "requested_amount": application.requested_amount,
+            # Borrower / Business Info
+            "business_name": application.business_name,
             "industry": application.industry,
             "state": application.state,
+            "years_in_business": application.years_in_business,
+            "annual_revenue": application.annual_revenue,
+
+            # Credit Info
+            "fico_score": application.fico_score,
+            "paynet_score": application.paynet_score,
             "has_bankruptcy": application.has_bankruptcy,
             "bankruptcy_years_ago": application.bankruptcy_years_ago,
-            "equipment_age_years": application.equipment_age_years,
+            "has_judgements": application.has_judgements,
+            "has_repossessions": application.has_repossessions,
+            "highest_previous_debt": application.highest_previous_debt,
+
+            # Loan Request
+            "requested_amount": application.requested_amount,
+            "requested_term_months": application.requested_term_months,
             "equipment_type": application.equipment_type,
+            "equipment_age_years": application.equipment_age_years,
             "equipment_mileage": application.equipment_mileage,
+
+            # Metadata
+            "status": application.status,
+            "submitted_at": application.submitted_at,
+            "created_at": application.created_at,
+            "updated_at": application.updated_at,
         }
+
 
     def _evaluate_program(
         self, 
@@ -86,7 +108,7 @@ class MatchingService:
             if passed:
                 passed_count += 1
 
-            # Create detailed rule result (this is what UI will display)
+            # Create detailed rule result instance (this is what UI will display)
             rule_result = MatchRuleResult(
                 rule_id=rule.id,
                 rule_type=rule.rule_type,
@@ -103,7 +125,7 @@ class MatchingService:
 
         overall_reason = "All criteria met" if is_eligible else "One or more criteria not met"
 
-        # Create main match record
+        # Create main match record instance
         match = ApplicationMatch(
             application_id=application_id,
             program_id=program.id,
@@ -111,7 +133,7 @@ class MatchingService:
             fit_score=fit_score,
             best_tier=program.name,
             overall_reason=overall_reason,
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         self.db.add(match)

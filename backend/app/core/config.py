@@ -9,9 +9,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # Hatchet Configuration (Optional)
-    HATCHET_CLIENT_TOKEN: str = ""
-    HATCHET_SERVER_URL: str = "https://api.hatchet.run"
-    HATCHET_DEBUG: bool = False
+    HATCHET_CLIENT_TOKEN: str
+    HATCHET_SERVER_URL: str
+    HATCHET_DEBUG: bool
 
     class Config:
         env_file = Path(__file__).parent.parent.parent / ".env"

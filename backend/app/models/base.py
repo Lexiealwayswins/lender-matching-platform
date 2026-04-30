@@ -1,12 +1,11 @@
 from sqlalchemy.orm import DeclarativeBase
 import enum
-from sqlalchemy import DateTime
 
 
 class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models in the Lender Matching Platform."""
-    # pass
-    __allow_unmapped__ = True # So that it allows List["xxx"] = relationship(...), not only Mapped[]
+    pass
+    
 
 
 class RuleType(str, enum.Enum):

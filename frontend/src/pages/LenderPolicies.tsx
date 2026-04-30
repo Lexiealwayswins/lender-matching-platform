@@ -17,7 +17,7 @@ const LenderPolicies = () => {
       setLoading(true);
       setError(null);
       
-      console.log("🔄 Fetching policies from:", `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/policies/lenders`);
+      console.log("🔄 Fetching policies from backend...");
       
       const data = await api.getAllPolicies();
       console.log("✅ Policies loaded successfully:", data);

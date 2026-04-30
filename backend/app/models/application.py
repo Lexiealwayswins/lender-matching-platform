@@ -1,9 +1,9 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Text, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-from typing import List
 from .base import Base
 from .match import ApplicationMatch
+from datetime import datetime
 
 
 class LoanApplication(Base):
@@ -15,35 +15,36 @@ class LoanApplication(Base):
     """
     __tablename__ = "loan_applications"
 
-    id = Column(Integer, primary_key=True)
-    application_number = Column(String(50), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    application_number: Mapped[str] = mapped_column(String(50), unique=True)
     
     # Borrower / Business Info
-    business_name = Column(String(200), nullable=False)
-    industry = Column(String(100))
-    state = Column(String(2), nullable=False)
-    years_in_business = Column(Integer)
-    annual_revenue = Column(Integer)
+    business_name: Mapped[str] = mapped_column(String(200))
+    industry: Mapped[str | None] = mapped_column(String(100))
+    state: Mapped[str] = mapped_column(String(2))
+    years_in_business: Mapped[int | None] = mapped_column()
+    annual_revenue: Mapped[int | None] = mapped_column()
     
     # Credit Info
-    fico_score = Column(Integer)
-    paynet_score = Column(Integer)
-    has_bankruptcy = Column(Boolean, default=False)
-    bankruptcy_years_ago = Column(Integer)
-    has_judgements = Column(Boolean, default=False)
-    has_repossessions = Column(Boolean, default=False)
+    fico_score: Mapped[int | None] = mapped_column()
+    paynet_score: Mapped[int | None] = mapped_column()
+    has_bankruptcy: Mapped[bool | None] = mapped_column(default=False)
+    bankruptcy_years_ago: Mapped[int | None] = mapped_column()
+    has_judgements: Mapped[bool | None] = mapped_column(default=False)
+    has_repossessions: Mapped[bool | None] = mapped_column(default=False)
+    highest_previous_debt: Mapped[int | None] = mapped_column()
     
     # Loan Request
-    requested_amount = Column(Integer, nullable=False)
-    requested_term_months = Column(Integer)
-    equipment_type = Column(String(100))
-    equipment_age_years = Column(Integer)
-    equipment_mileage = Column(Integer)
+    requested_amount: Mapped[int] = mapped_column()
+    requested_term_months: Mapped[int | None] = mapped_column()
+    equipment_type: Mapped[str | None] = mapped_column(String(100))
+    equipment_age_years: Mapped[int | None] = mapped_column()
+    equipment_mileage: Mapped[int | None] = mapped_column()
     
     # Metadata
-    status = Column(String(50), default="draft")
-    submitted_at = Column(DateTime)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    status: Mapped[str | None] = mapped_column(String(50), default="draft")
+    submitted_at: Mapped[datetime | None] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    matches: List["ApplicationMatch"] = relationship("ApplicationMatch", back_populates="application")
+    matches: Mapped[list["ApplicationMatch"]] = relationship(back_populates="application")
