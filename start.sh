@@ -31,11 +31,14 @@ echo "🔧 Starting FastAPI Backend..."
 if [ -d "venv" ]; then
     source venv/bin/activate
 elif [ -d "lmpvenv" ]; then
-    source lmpvenv/bin/activate    source lmpvenv/bin virtual environment found. Please run setup first."
+    source lmpvenv/bin/activate    
+else 
+    echo "No virtual environment found. Please run setup first."
     exit 1
 fi
 
 # ====================== 3. Start Hatchet Worker ======================
+cd ../backend
 echo "🪓 Starting Hatchet Worker..."
 python run_worker.py &
 WORKER_PID=$!
@@ -46,8 +49,8 @@ uvicorn main:app --reload --port 8000 &
 BACKEND_PID=$!
 
 # ====================== 5. Start Frontend ======================
-echo "💻 Starting React + TypeScript Frontend..."
 cd ../frontend
+echo "💻 Starting React + TypeScript Frontend..."
 npm run dev &
 FRONTEND_PID=$!
 
@@ -65,7 +68,7 @@ echo "=================================================================="
 # ====================== Graceful Shutdown ======================
 trap '
     echo -e "\n\n🛑 Shutting down all services..."
-    kill $BACKEND_PID $FRONTEND_PID 2>/dev/n    kiltrue
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
     cd ../backend && docker compose down
     echo "✅ All services stopped. Goodbye!"
     exit 0
